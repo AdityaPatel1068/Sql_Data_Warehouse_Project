@@ -1,35 +1,42 @@
 /*
 =============================================================
-Create Data Warehouse and Layer Databases (MySQL 8+)
+Create Database and Schemas
 =============================================================
-WARNING: This DROPS and recreates the databases if they exist.
-Back up your data first.
-=============================================================
+Script Purpose:
+    This script creates a new database named 'DataWarehouse' after checking if it already exists. 
+    If the database exists, it is dropped and recreated. Additionally, the script sets up three schemas 
+    within the database: 'bronze', 'silver', and 'gold'.
+	
+WARNING:
+    Running this script will drop the entire 'DataWarehouse' database if it exists. 
+    All data in the database will be permanently deleted. Proceed with caution 
+    and ensure you have proper backups before running this script.
 */
 
--- Drop existing
-DROP DATABASE IF EXISTS `datawarehouse`;
-DROP DATABASE IF EXISTS `datawarehouse_bronze`;
-DROP DATABASE IF EXISTS `datawarehouse_silver`;
-DROP DATABASE IF EXISTS `datawarehouse_gold`;
+USE master;
+GO
 
--- Create fresh databases
-CREATE DATABASE `datawarehouse`
-  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- Drop and recreate the 'DataWarehouse' database
+IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DataWarehouse')
+BEGIN
+    ALTER DATABASE DataWarehouse SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE DataWarehouse;
+END;
+GO
 
-CREATE DATABASE `datawarehouse_bronze`
-  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- Create the 'DataWarehouse' database
+CREATE DATABASE DataWarehouse;
+GO
 
-CREATE DATABASE `datawarehouse_silver`
-  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE DataWarehouse;
+GO
 
-CREATE DATABASE `datawarehouse_gold`
-  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- Create Schemas
+CREATE SCHEMA bronze;
+GO
 
--- (Optional) example cross-db view in GOLD pulling from SILVER
--- Adjust table names to yours.
--- CREATE VIEW `datawarehouse_gold`.customer_sales AS
--- SELECT s.customer_id, SUM(o.amount) AS total_amount
--- FROM `datawarehouse_silver`.orders o
--- JOIN `datawarehouse_silver`.customers s ON s.id = o.customer_id
--- GROUP BY s.customer_id;
+CREATE SCHEMA silver;
+GO
+
+CREATE SCHEMA gold;
+GO
